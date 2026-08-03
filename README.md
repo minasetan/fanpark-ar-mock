@@ -9,11 +9,8 @@
 
 ## 公開 URL
 
-認証・Pages 設定後に次の形式になります。
-
-```text
-https://<github-username>.github.io/fanpark-ar-mock/
-```
+- サイト: https://minasetan.github.io/fanpark-ar-mock/
+- リポジトリ: https://github.com/minasetan/fanpark-ar-mock
 
 ## 使い方（実機）
 
