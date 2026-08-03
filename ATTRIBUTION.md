@@ -1,19 +1,16 @@
 # アセットの出典・ライセンス
 
-## 3Dキャラクター
+## 等身大パネル
 
-- モデル名: Adventurer（Ultimate Modular Men Pack）
-- 作者: [Quaternius](https://quaternius.com/)
-- 配布: [Poly Pizza](https://poly.pizza/m/5EGWBMpuXq)
-- ライセンス: [CC0 1.0 Universal (Public Domain)](https://creativecommons.org/publicdomain/zero/1.0/)
+- 内容: 選手写真を用いた両面等身大パネル（高さ 1.80m）
+- 表画像: `player_ar_standing_front_01`
+- 裏画像: `player_ar_standing_back_01`
 - 本リポジトリでの加工:
-  - アニメーションは `Wave` のみ残し、名前を `Idle` に変更（他 23 本と未参照のバッファを削除）
-  - Android 用 GLB は元スケールのまま（身長 約 1.83m、足元接地）
-  - iPhone 用 USDZ は Quick Look 向けにポーズをベイクした静的メッシュとして書き出し（Y-up / 1m単位 / 非メタル）
-  - Web プレビューでは Idle アニメーションが再生される
-  - ポスター画像は Blender でレンダリング
+  - 黒背景を透過し、被写体領域でクロップ
+  - Blender で薄い両面パネルメッシュを作成
+  - Android / Web 用 `character.glb`、iPhone 用 `character.usdz`（Y-up）を書き出し
 
-CC0 のため帰属表示は必須ではありませんが、作者への感謝として記載しています。
+写真素材の利用権限は、本モックの発注・運用側で確保している前提です。
 
 ## Web ライブラリ
 

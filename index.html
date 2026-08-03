@@ -6,7 +6,7 @@
     name="viewport"
     content="width=device-width, initial-scale=1, viewport-fit=cover"
   >
-  <title>キャラクターAR</title>
+  <title>等身大パネルAR</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./style.css">
   <script
@@ -16,10 +16,10 @@
 </head>
 <body>
   <main>
-    <h1>キャラクターAR</h1>
+    <h1>等身大パネルAR</h1>
 
     <p class="lead">
-      キャラクターを平らな地面に配置できます。
+      選手の等身大パネルを平らな地面に配置できます。
       周囲の安全を確認してご利用ください。
     </p>
 
@@ -27,10 +27,9 @@
       src="./assets/character.glb"
       ios-src="./assets/character.usdz"
       poster="./assets/character-poster.webp"
-      alt="ARで表示するキャラクター"
+      alt="ARで表示する等身大パネル"
       camera-controls
       auto-rotate
-      autoplay
       ar
       ar-modes="scene-viewer quick-look"
       ar-placement="floor"
@@ -38,6 +37,9 @@
       shadow-intensity="1"
       touch-action="pan-y"
       exposure="1"
+      camera-orbit="0deg 75deg 2.8m"
+      min-camera-orbit="auto auto 1.5m"
+      max-camera-orbit="auto auto 6m"
     >
       <button slot="ar-button" class="ar-button" type="button">
         ARで表示
@@ -47,12 +49,11 @@
     <section>
       <h2>使い方</h2>
       <ol>
-        <li>上のプレビューでキャラクターを回転・拡大して確認します。</li>
+        <li>上のプレビューでパネルを回転して、表と裏を確認します。</li>
         <li>「ARで表示」を押します。</li>
         <li>スマートフォンをゆっくり動かして、平らな地面を認識させます。</li>
-        <li>地面をタップしてキャラクターを配置します。</li>
+        <li>地面をタップして等身大パネルを配置します。</li>
         <li>周囲を歩いて観察できます（OS標準機能で写真・動画も撮影できます）。</li>
-        <li>iPhone の AR では配置しやすさ優先のため、現時点では静止ポーズで表示されます（ページ上のプレビューではアニメーションします）。</li>
       </ol>
     </section>
 

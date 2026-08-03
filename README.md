@@ -1,11 +1,12 @@
-# キャラクター AR モック
+# 等身大パネル AR モック
 
-スマートフォンのブラウザから、人物キャラクターを現実空間に配置して確認できる静的 AR モックです。
+スマートフォンのブラウザから、選手の等身大パネルを現実空間に配置して確認できる静的 AR モックです。
 
 - iPhone（Safari）: Apple Quick Look（USDZ）
 - Android（Chrome）: Google Scene Viewer（GLB）
 - Web プレビュー: [`<model-viewer>`](https://modelviewer.dev/)
 - ソース管理 / 公開: GitHub + GitHub Pages
+- パネル高さ: 1.80m（表裏の静止画像）
 
 ## 公開 URL
 
@@ -15,15 +16,13 @@
 ## 使い方（実機）
 
 1. 上記 URL を iPhone Safari または Android Chrome で開く
-2. ページ上の 3D プレビューで確認する
+2. ページ上のプレビューで表裏を回転して確認する
 3. 「ARで表示」を押す
-4. 端末を動かして地面を認識し、キャラクターを配置する
+4. 端末を動かして地面を認識し、等身大パネルを配置する
 
 QR コードが必要な場合は、公開 URL を任意の QR 生成サービスに渡せば利用できます。
 
 ## ローカル確認
-
-静的ファイルのみなので、任意のローカルサーバーで開けます。
 
 ```bash
 python3 -m http.server 8080
@@ -47,13 +46,13 @@ AR の最終確認は HTTPS の公開 URL で行ってください。
     └── character-poster.webp
 ```
 
-## モデル差し替え
+## パネル差し替え
 
-1. `assets/character.glb` と `assets/character.usdz` を置き換える
-2. 必要なら `assets/character-poster.webp` も更新する
-3. `ATTRIBUTION.md` を更新する
+1. 表裏の透過 PNG を用意する
+2. `tmp/panel/build_panel.py` で GLB / USDZ を再生成する（または同等の手順）
+3. `assets/character-poster.webp` と `ATTRIBUTION.md` を更新する
 
-モック用モデルの出典は [ATTRIBUTION.md](./ATTRIBUTION.md) を参照してください。
+詳細は [ATTRIBUTION.md](./ATTRIBUTION.md) を参照してください。
 
 ## GitHub Pages
 
