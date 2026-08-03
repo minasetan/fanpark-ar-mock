@@ -5,16 +5,23 @@
 - iPhone（Safari）: Apple Quick Look（USDZ）
 - Android（Chrome）: Google Scene Viewer（GLB）
 - Web プレビュー: [`<model-viewer>`](https://modelviewer.dev/)
-- ホスティング: GitHub Pages（HTTPS）
+- ソース管理: GitLab（colony）
+- 公開: GitLab Pages（有効時）/ 当面は GitHub Pages でも閲覧可
+
+## リポジトリ
+
+- GitLab: https://gitlab-colony.colopl.jp/kawada.yusuke.10625/fanpark-ar-mock
+- GitHub（ミラー／Pages 用）: https://github.com/minasetan/fanpark-ar-mock
 
 ## 公開 URL
 
-- サイト: https://minasetan.github.io/fanpark-ar-mock/
-- リポジトリ: https://github.com/minasetan/fanpark-ar-mock
+- GitHub Pages（現在公開中）: https://minasetan.github.io/fanpark-ar-mock/
+- GitLab Pages: パイプライン成功後、プロジェクトの **Deploy → Pages** に表示されます  
+  （社内 GitLab で Pages が無効の場合は URL は出ません）
 
 ## 使い方（実機）
 
-1. 上記 URL を iPhone Safari または Android Chrome で開く
+1. 公開 URL を iPhone Safari または Android Chrome で開く
 2. ページ上の 3D プレビューで確認する
 3. 「ARで表示」を押す
 4. 端末を動かして地面を認識し、キャラクターを配置する
@@ -30,12 +37,13 @@ python3 -m http.server 8080
 # http://localhost:8080/
 ```
 
-AR 起動自体は実機 + HTTPS（または一部環境での特別な設定）が必要です。最終確認は GitHub Pages の HTTPS URL で行ってください。
+AR の最終確認は HTTPS の公開 URL で行ってください。
 
 ## ファイル構成
 
 ```text
 .
+├── .gitlab-ci.yml
 ├── index.html
 ├── style.css
 ├── README.md
@@ -55,10 +63,10 @@ AR 起動自体は実機 + HTTPS（または一部環境での特別な設定）
 
 モック用モデルの出典は [ATTRIBUTION.md](./ATTRIBUTION.md) を参照してください。
 
-## GitHub Pages 設定
+## GitLab Pages
 
-1. このリポジトリを GitHub に push する
-2. Settings → Pages
-3. Source: `Deploy from a branch`
-4. Branch: `main` / folder: `/ (root)`
-5. 数分待って HTTPS URL を開く
+`main` への push で `.gitlab-ci.yml` の `pages` ジョブが走り、`public/` 配下を公開します。
+
+1. パイプラインが成功することを確認する（CI/CD → Pipelines）
+2. **Deploy → Pages** で公開 URL を確認する
+3. Pages メニューやジョブが無い場合は、インスタンス側で Pages が無効です（管理者へ確認）

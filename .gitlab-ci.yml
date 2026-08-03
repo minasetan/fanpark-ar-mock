@@ -1,0 +1,12 @@
+# GitLab Pages: publish the static AR mock from the repository root.
+pages:
+  stage: deploy
+  script:
+    - mkdir -p public
+    - cp index.html style.css favicon.svg public/
+    - cp -R assets public/
+  artifacts:
+    paths:
+      - public
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
