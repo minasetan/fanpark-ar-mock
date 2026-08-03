@@ -6,7 +6,7 @@
 - Android（Chrome）: Google Scene Viewer（GLB）
 - Web プレビュー: [`<model-viewer>`](https://modelviewer.dev/)
 - ソース管理 / 公開: GitHub + GitHub Pages
-- パネル高さ: 1.80m（表裏の静止画像）
+- パネル高さ: 2.00m（表裏の静止画像）
 
 ## 公開 URL
 
