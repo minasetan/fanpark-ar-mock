@@ -23,6 +23,8 @@ export function initExperience(options = {}) {
     arButton: document.getElementById("ar-button"),
     overlay: document.getElementById("ar-overlay"),
     playerPin: document.getElementById("player-pin"),
+    mapCleared: document.getElementById("map-cleared"),
+    mapHint: document.getElementById("map-hint"),
     footprint: document.getElementById("footprint"),
     groundRing: document.getElementById("ground-ring"),
     scanFrame: document.getElementById("scan-frame"),
@@ -167,10 +169,19 @@ export function initExperience(options = {}) {
     if (name === "map") updateMapPin();
   }
 
+  function isCollected() {
+    return sessionStorage.getItem(STORAGE_KEY) === "1";
+  }
+
   function updateMapPin() {
-    if (!els.playerPin) return;
-    const collected = sessionStorage.getItem(STORAGE_KEY) === "1";
-    els.playerPin.hidden = collected;
+    const collected = isCollected();
+    if (els.playerPin) els.playerPin.hidden = collected;
+    if (els.mapCleared) els.mapCleared.hidden = !collected;
+    if (els.mapHint) {
+      els.mapHint.textContent = collected
+        ? "選手を獲得済みです。やり直すか、TOPへ戻ってください。"
+        : "選手ピンをタップするとARへ進みます。獲得済みの選手はMAPから消えます。";
+    }
   }
 
   async function startArFlow() {
@@ -181,7 +192,11 @@ export function initExperience(options = {}) {
     }
 
     Object.values(els.screens).forEach((el) => el?.classList.remove("is-active"));
-    els.arRoot.classList.add("is-active");
+    if (els.arRoot) {
+      els.arRoot.style.pointerEvents = "";
+      els.arRoot.style.visibility = "";
+      els.arRoot.classList.add("is-active");
+    }
     setArUi("floor");
     state = "floor";
     closingAr = false;
@@ -342,36 +357,60 @@ export function initExperience(options = {}) {
   }
 
   async function finishAndReturn() {
-    if (state !== "farewell") return;
+    if (state !== "farewell" || closingAr) return;
     closingAr = true;
     clearScanTimers();
     els.fadeBlack?.classList.add("is-on");
     await wait(TIMING.fadeMs);
-    try {
-      if (els.viewer?.exitAR) {
-        await els.viewer.exitAR();
-      }
-    } catch {
-      // ignore
-    }
-    els.fadeBlack?.classList.remove("is-on");
-    els.arRoot.classList.remove("is-active");
-    setArUi("none");
+
+    // Always leave AR UI first so MAP is usable even if exitAR hangs.
+    forceLeaveAr();
     if (mode === "proposal") {
       showScreen("map");
     } else {
       showScreen("notice");
     }
+
+    try {
+      if (els.viewer?.exitAR) {
+        await Promise.race([
+          els.viewer.exitAR(),
+          wait(1500),
+        ]);
+      }
+    } catch {
+      // ignore
+    }
+
     closingAr = false;
   }
 
-  function exitArTo(screenName) {
+  function forceLeaveAr() {
     clearScanTimers();
     els.fadeBlack?.classList.remove("is-on");
     els.glowFlash?.classList.remove("is-on");
-    els.arRoot.classList.remove("is-active");
+    els.arRoot?.classList.remove("is-active");
     setArUi("none");
+    // Belt-and-suspenders against leftover XR overlay hit targets
+    if (els.arRoot) {
+      els.arRoot.style.pointerEvents = "none";
+      els.arRoot.style.visibility = "hidden";
+    }
+    if (els.overlay) {
+      els.overlay.classList.remove("is-blocking");
+    }
+  }
+
+  function exitArTo(screenName) {
+    closingAr = true;
+    forceLeaveAr();
     showScreen(screenName);
+    closingAr = false;
+    try {
+      els.viewer?.exitAR?.();
+    } catch {
+      // ignore
+    }
   }
 
   function clearScanTimers() {

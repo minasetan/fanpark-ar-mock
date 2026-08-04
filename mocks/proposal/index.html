@@ -22,7 +22,7 @@
   <section id="screen-map" class="screen screen-map">
     <div class="map-header">
       <h1>MAP</h1>
-      <button id="btn-reset-collection" class="btn btn-ghost" type="button">獲得リセット</button>
+      <a class="btn btn-ghost" href="../../index.html">TOPへ</a>
     </div>
     <div class="map-stage">
       <p class="map-label">簡易MAP · 位置情報なし</p>
@@ -30,9 +30,16 @@
         <span class="avatar" aria-hidden="true"></span>
         <span class="pin-name">Rakuten Taro</span>
       </button>
+      <div id="map-cleared" class="map-cleared" hidden>
+        <p class="cleared-title">体験完了</p>
+        <p>獲得した選手は MAP から消えました。</p>
+        <div class="map-actions">
+          <button id="btn-reset-collection" class="btn" type="button">最初からやり直す</button>
+          <a class="btn btn-ghost" href="../../index.html">デバッグTOPへ</a>
+        </div>
+      </div>
     </div>
-    <p class="map-hint">選手ピンをタップするとARへ進みます。獲得済みの選手はMAPから消えます。</p>
-    <p style="margin-top:12px"><a class="link-top" href="../../index.html">デバッグTOPへ</a></p>
+    <p id="map-hint" class="map-hint">選手ピンをタップするとARへ進みます。獲得済みの選手はMAPから消えます。</p>
   </section>
 
   <section id="screen-notice" class="screen screen-center">
