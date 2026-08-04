@@ -18,8 +18,8 @@
       検証用モックの起動ページです。確認したい体験を選んでください。
     </p>
 
-    <nav class="mock-list" aria-label="モック一覧">
-      <a class="mock-card" href="./mocks/proposal/index.html">
+    <div class="mock-list" aria-label="モック一覧">
+      <article class="mock-card">
         <span class="mock-num">(1)</span>
         <h2>提案モック資料どおり</h2>
         <p>タイトル → MAP → AR → スキャン → 獲得 → お別れ → MAP</p>
@@ -27,9 +27,10 @@
           <li>対象: Android Chrome（WebXR）</li>
           <li>AR中UI / エフェクト / タップ操作あり</li>
         </ul>
-      </a>
+        <a class="launch-btn" href="./mocks/proposal/index.html">起動する</a>
+      </article>
 
-      <a class="mock-card" href="./mocks/ar-android/index.html">
+      <article class="mock-card">
         <span class="mock-num">(2)</span>
         <h2>AR確認のみ（Android）</h2>
         <p>MAP省略。AR注意から選手表示・スキャン演出までを即確認</p>
@@ -37,9 +38,10 @@
           <li>対象: Android Chrome（WebXR）</li>
           <li>AR中UI / エフェクト / タップ操作あり</li>
         </ul>
-      </a>
+        <a class="launch-btn" href="./mocks/ar-android/index.html">起動する</a>
+      </article>
 
-      <a class="mock-card" href="./mocks/ar-cross/index.html">
+      <article class="mock-card">
         <span class="mock-num">(3)</span>
         <h2>AR確認のみ（iPhone / Android）</h2>
         <p>等身大パネルの配置・回り込み確認（閲覧専用）</p>
@@ -47,13 +49,14 @@
           <li>対象: iPhone Safari / Android Chrome</li>
           <li>Quick Look / Scene Viewer（AR中カスタムUIなし）</li>
         </ul>
-      </a>
-    </nav>
+        <a class="launch-btn" href="./mocks/ar-cross/index.html">起動する</a>
+      </article>
+    </div>
 
     <section>
       <h2>共通メモ</h2>
       <ul>
-        <li>AR最終確認は HTTPS（GitHub Pages）で行ってください。</li>
+        <li>AR最終確認は HTTPS（Firebase Hosting / GitHub Pages）で行ってください。</li>
         <li>(1)(2) は WebXR 対応の Android Chrome が必要です。iPhone では起動案内のみ出ます。</li>
         <li>パネル高さ: 2.00m（体感約180cm想定）</li>
       </ul>
