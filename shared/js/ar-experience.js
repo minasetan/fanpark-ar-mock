@@ -262,7 +262,7 @@ export function initExperience(options = {}) {
     if (els.arRoot) {
       els.arRoot.style.pointerEvents = "";
       els.arRoot.style.visibility = "";
-      els.arRoot.classList.add("is-active");
+      els.arRoot.classList.add("is-active", "ar-booting");
     }
     setArUi("floor");
     state = "floor";
@@ -292,6 +292,10 @@ export function initExperience(options = {}) {
     }
   }
 
+  function revealArViewer() {
+    els.arRoot?.classList.remove("ar-booting");
+  }
+
   function onArStatus(event) {
     const status = event.target.getAttribute("ar-status") || event.detail?.status;
     if (closingAr) return;
@@ -299,11 +303,13 @@ export function initExperience(options = {}) {
       exitArTo("unsupported");
       return;
     }
-    if (status === "session-started" && state === "floor") {
-      setArUi("floor");
+    if (status === "session-started") {
+      revealArViewer();
+      if (state === "floor") setArUi("floor");
       return;
     }
     if (status === "object-placed" && state === "floor") {
+      revealArViewer();
       setArUi("player");
       state = "player";
       return;
@@ -442,7 +448,7 @@ export function initExperience(options = {}) {
     clearScanTimers();
     els.fadeBlack?.classList.remove("is-on");
     els.glowFlash?.classList.remove("is-on");
-    els.arRoot?.classList.remove("is-active");
+    els.arRoot?.classList.remove("is-active", "ar-booting");
     setArUi("none");
     if (els.arRoot) {
       els.arRoot.style.pointerEvents = "none";
