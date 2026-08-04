@@ -154,37 +154,28 @@ button {
 
 .player-pin {
   position: absolute;
-  left: 52%;
-  top: 46%;
+  left: var(--pin-x, 50%);
+  top: var(--pin-y, 50%);
   transform: translate(-50%, -50%);
-  width: 92px;
+  width: 64px;
+  height: 64px;
   padding: 0;
-  border: 0;
-  background: transparent;
-  color: inherit;
-}
-
-.player-pin[hidden] {
-  display: none;
-}
-
-.player-pin .avatar {
-  width: 72px;
-  height: 72px;
-  margin: 0 auto 6px;
-  border-radius: 50%;
   border: 3px solid #fff;
-  background:
-    center / cover no-repeat url("../../assets/character-poster.webp"),
-    #444;
+  border-radius: 50%;
+  background: var(--rq-red);
+  color: #fff;
+  font-size: 1.45rem;
+  font-weight: 800;
+  line-height: 1;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
 }
 
-.player-pin .pin-name {
-  display: block;
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+.player-pin:active {
+  transform: translate(-50%, -50%) scale(0.96);
+}
+
+.player-pin[hidden] {
+  display: none !important;
 }
 
 .map-hint {

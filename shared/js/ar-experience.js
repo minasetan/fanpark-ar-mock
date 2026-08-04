@@ -1,4 +1,4 @@
-import { PLAYER, STORAGE_KEY, TIMING } from "./config.js";
+import { PLAYER, MAP_PLAYERS, STORAGE_KEY, TIMING } from "./config.js";
 
 /**
  * Shared interactive AR experience for mocks (1) and (2).
@@ -22,7 +22,7 @@ export function initExperience(options = {}) {
     viewer: document.getElementById("player-viewer"),
     arButton: document.getElementById("ar-button"),
     overlay: document.getElementById("ar-overlay"),
-    playerPin: document.getElementById("player-pin"),
+    pinsRoot: document.getElementById("player-pins"),
     mapCleared: document.getElementById("map-cleared"),
     mapHint: document.getElementById("map-hint"),
     footprint: document.getElementById("footprint"),
@@ -51,10 +51,13 @@ export function initExperience(options = {}) {
   let glowTimer = null;
   let acquireStep = 0;
   let closingAr = false;
+  /** @type {string|null} */
+  let activePlayerId = null;
 
   fillCopy();
+  renderMapPins();
   bindUi();
-  updateMapPin();
+  updateMapPins();
   setArUi("none");
 
   if (mode === "ar-only") {
@@ -82,15 +85,39 @@ export function initExperience(options = {}) {
     }
   }
 
+  function renderMapPins() {
+    if (!els.pinsRoot || mode !== "proposal") return;
+    els.pinsRoot.innerHTML = "";
+    MAP_PLAYERS.forEach((player) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "player-pin";
+      btn.dataset.playerId = player.id;
+      btn.textContent = player.label;
+      btn.setAttribute("aria-label", `選手 ${player.label}`);
+      btn.style.setProperty("--pin-x", `${player.x}%`);
+      btn.style.setProperty("--pin-y", `${player.y}%`);
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        selectPlayer(player.id);
+      });
+      els.pinsRoot.appendChild(btn);
+    });
+  }
+
+  function selectPlayer(playerId) {
+    if (getCollectedIds().has(playerId)) return;
+    activePlayerId = playerId;
+    showScreen("notice");
+  }
+
   function bindUi() {
-    // WebXR: without preventDefault, taps become XR selects and DOM buttons fail.
     const blockXrSelect = (event) => {
-      if (state === "floor") return; // allow placement taps to pass through
+      if (state === "floor") return;
       event.preventDefault();
     };
     els.overlay?.addEventListener("beforexrselect", blockXrSelect);
     els.viewer?.addEventListener("beforexrselect", (event) => {
-      // If the tap target is inside our overlay UI, always block XR select.
       const path = event.composedPath?.() || [];
       const inOverlay = path.includes(els.overlay);
       if (inOverlay && state !== "floor") {
@@ -106,12 +133,8 @@ export function initExperience(options = {}) {
     document.getElementById("btn-reset-collection")?.addEventListener("click", (e) => {
       e.preventDefault();
       sessionStorage.removeItem(STORAGE_KEY);
-      updateMapPin();
-    });
-
-    els.playerPin?.addEventListener("click", (e) => {
-      e.preventDefault();
-      showScreen("notice");
+      activePlayerId = null;
+      updateMapPins();
     });
 
     document.getElementById("btn-start-ar")?.addEventListener("click", (e) => {
@@ -121,6 +144,7 @@ export function initExperience(options = {}) {
 
     document.getElementById("btn-back-map")?.addEventListener("click", (e) => {
       e.preventDefault();
+      activePlayerId = null;
       showScreen("map");
     });
 
@@ -166,25 +190,57 @@ export function initExperience(options = {}) {
     if (name !== "unsupported") {
       els.arRoot?.classList.remove("is-active");
     }
-    if (name === "map") updateMapPin();
+    if (name === "map") updateMapPins();
   }
 
-  function isCollected() {
-    return sessionStorage.getItem(STORAGE_KEY) === "1";
+  function getCollectedIds() {
+    try {
+      const raw = sessionStorage.getItem(STORAGE_KEY);
+      if (!raw) return new Set();
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) return new Set();
+      return new Set(parsed.map(String));
+    } catch {
+      return new Set();
+    }
   }
 
-  function updateMapPin() {
-    const collected = isCollected();
-    if (els.playerPin) els.playerPin.hidden = collected;
-    if (els.mapCleared) els.mapCleared.hidden = !collected;
+  function markCollected(playerId) {
+    if (!playerId) return;
+    const next = getCollectedIds();
+    next.add(String(playerId));
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify([...next]));
+  }
+
+  function updateMapPins() {
+    if (mode !== "proposal") return;
+    const collected = getCollectedIds();
+    const pins = els.pinsRoot?.querySelectorAll(".player-pin") || [];
+    pins.forEach((pin) => {
+      const id = pin.dataset.playerId;
+      pin.hidden = collected.has(id);
+    });
+
+    const allCleared = collected.size >= MAP_PLAYERS.length;
+    if (els.mapCleared) els.mapCleared.hidden = !allCleared;
     if (els.mapHint) {
-      els.mapHint.textContent = collected
-        ? "選手を獲得済みです。やり直すか、TOPへ戻ってください。"
-        : "選手ピンをタップするとARへ進みます。獲得済みの選手はMAPから消えます。";
+      if (allCleared) {
+        els.mapHint.textContent = "全選手を獲得済みです。やり直すか、TOPへ戻ってください。";
+      } else if (collected.size > 0) {
+        els.mapHint.textContent = `獲得済み: ${[...collected].sort().join(", ")} ／ 残りの番号をタップしてARへ`;
+      } else {
+        els.mapHint.textContent =
+          "番号アイコンをタップするとARへ進みます。お別れ後、その番号はMAPから消えます。";
+      }
     }
   }
 
   async function startArFlow() {
+    if (mode === "proposal" && !activePlayerId) {
+      showScreen("map");
+      return;
+    }
+
     const supported = await canUseWebXr();
     if (!supported) {
       showScreen("unsupported");
@@ -289,7 +345,6 @@ export function initExperience(options = {}) {
       acquireStep = 0;
     }
 
-    // Keep overlay interactive after placement
     els.overlay?.classList.toggle("is-blocking", phase !== "floor" && phase !== "none");
   }
 
@@ -338,7 +393,6 @@ export function initExperience(options = {}) {
     acquireStep = 0;
     setArUi("acquire");
     if (els.cardMsg) els.cardMsg.textContent = PLAYER.acquiredLine;
-    sessionStorage.setItem(STORAGE_KEY, "1");
   }
 
   function advanceAcquire() {
@@ -360,11 +414,17 @@ export function initExperience(options = {}) {
     if (state !== "farewell" || closingAr) return;
     closingAr = true;
     clearScanTimers();
+
+    // お別れ完了時に、タップした番号だけMAPから消す
+    if (mode === "proposal") {
+      markCollected(activePlayerId);
+    }
+
     els.fadeBlack?.classList.add("is-on");
     await wait(TIMING.fadeMs);
 
-    // Always leave AR UI first so MAP is usable even if exitAR hangs.
     forceLeaveAr();
+    activePlayerId = null;
     if (mode === "proposal") {
       showScreen("map");
     } else {
@@ -373,10 +433,7 @@ export function initExperience(options = {}) {
 
     try {
       if (els.viewer?.exitAR) {
-        await Promise.race([
-          els.viewer.exitAR(),
-          wait(1500),
-        ]);
+        await Promise.race([els.viewer.exitAR(), wait(1500)]);
       }
     } catch {
       // ignore
@@ -391,7 +448,6 @@ export function initExperience(options = {}) {
     els.glowFlash?.classList.remove("is-on");
     els.arRoot?.classList.remove("is-active");
     setArUi("none");
-    // Belt-and-suspenders against leftover XR overlay hit targets
     if (els.arRoot) {
       els.arRoot.style.pointerEvents = "none";
       els.arRoot.style.visibility = "hidden";
@@ -404,6 +460,8 @@ export function initExperience(options = {}) {
   function exitArTo(screenName) {
     closingAr = true;
     forceLeaveAr();
+    // 途中離脱では番号を消さない
+    if (screenName === "map") activePlayerId = null;
     showScreen(screenName);
     closingAr = false;
     try {
