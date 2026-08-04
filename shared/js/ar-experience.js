@@ -21,6 +21,7 @@ export function initExperience(options = {}) {
     arRoot: document.getElementById("ar-root"),
     viewer: document.getElementById("player-viewer"),
     arButton: document.getElementById("ar-button"),
+    overlay: document.getElementById("ar-overlay"),
     playerPin: document.getElementById("player-pin"),
     footprint: document.getElementById("footprint"),
     groundRing: document.getElementById("ground-ring"),
@@ -36,6 +37,8 @@ export function initExperience(options = {}) {
     scanHud: document.getElementById("scan-hud"),
     farewellHud: document.getElementById("farewell-hud"),
     scanHint: document.getElementById("scan-hint"),
+    btnRunScan: document.getElementById("btn-run-scan"),
+    btnCancelScan: document.getElementById("btn-cancel-scan"),
     nameEls: document.querySelectorAll("[data-player-name]"),
     introEls: document.querySelectorAll("[data-intro-line]"),
     farewellEls: document.querySelectorAll("[data-farewell-line]"),
@@ -43,12 +46,14 @@ export function initExperience(options = {}) {
 
   let state = "boot";
   let scanTimer = null;
+  let glowTimer = null;
   let acquireStep = 0;
   let closingAr = false;
 
   fillCopy();
   bindUi();
   updateMapPin();
+  setArUi("none");
 
   if (mode === "ar-only") {
     showScreen("notice");
@@ -76,44 +81,74 @@ export function initExperience(options = {}) {
   }
 
   function bindUi() {
-    document.getElementById("btn-start")?.addEventListener("click", () => {
+    // WebXR: without preventDefault, taps become XR selects and DOM buttons fail.
+    const blockXrSelect = (event) => {
+      if (state === "floor") return; // allow placement taps to pass through
+      event.preventDefault();
+    };
+    els.overlay?.addEventListener("beforexrselect", blockXrSelect);
+    els.viewer?.addEventListener("beforexrselect", (event) => {
+      // If the tap target is inside our overlay UI, always block XR select.
+      const path = event.composedPath?.() || [];
+      const inOverlay = path.includes(els.overlay);
+      if (inOverlay && state !== "floor") {
+        event.preventDefault();
+      }
+    });
+
+    document.getElementById("btn-start")?.addEventListener("click", (e) => {
+      e.preventDefault();
       showScreen("map");
     });
 
-    document.getElementById("btn-reset-collection")?.addEventListener("click", () => {
+    document.getElementById("btn-reset-collection")?.addEventListener("click", (e) => {
+      e.preventDefault();
       sessionStorage.removeItem(STORAGE_KEY);
       updateMapPin();
     });
 
-    els.playerPin?.addEventListener("click", () => {
+    els.playerPin?.addEventListener("click", (e) => {
+      e.preventDefault();
       showScreen("notice");
     });
 
-    document.getElementById("btn-start-ar")?.addEventListener("click", () => {
+    document.getElementById("btn-start-ar")?.addEventListener("click", (e) => {
+      e.preventDefault();
       startArFlow();
     });
 
-    document.getElementById("btn-back-map")?.addEventListener("click", () => {
+    document.getElementById("btn-back-map")?.addEventListener("click", (e) => {
+      e.preventDefault();
       showScreen("map");
     });
 
-    document.getElementById("btn-scan")?.addEventListener("click", () => {
+    document.getElementById("btn-scan")?.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       enterScanMode();
     });
 
-    document.getElementById("btn-cancel-scan")?.addEventListener("click", () => {
+    els.btnCancelScan?.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       cancelScanMode();
     });
 
-    document.getElementById("btn-run-scan")?.addEventListener("click", () => {
+    els.btnRunScan?.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       runScan();
     });
 
-    document.getElementById("btn-farewell-ok")?.addEventListener("click", () => {
+    document.getElementById("btn-farewell-ok")?.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       finishAndReturn();
     });
 
-    els.tapCatcher?.addEventListener("click", () => {
+    els.tapCatcher?.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       advanceAcquire();
     });
 
@@ -186,7 +221,7 @@ export function initExperience(options = {}) {
       setArUi("floor");
       return;
     }
-    if (status === "object-placed" && (state === "floor" || state === "boot")) {
+    if (status === "object-placed" && state === "floor") {
       setArUi("player");
       state = "player";
       return;
@@ -204,6 +239,12 @@ export function initExperience(options = {}) {
     return ["player", "scan", "scanning", "acquire", "farewell"].includes(state);
   }
 
+  function setHidden(el, hidden) {
+    if (!el) return;
+    el.hidden = hidden;
+    el.setAttribute("aria-hidden", hidden ? "true" : "false");
+  }
+
   function setArUi(phase) {
     const floor = phase === "floor";
     const player = phase === "player";
@@ -211,50 +252,73 @@ export function initExperience(options = {}) {
     const acquire = phase === "acquire";
     const farewell = phase === "farewell";
 
-    if (els.footprint) els.footprint.hidden = !floor;
+    setHidden(els.footprint, !floor);
     els.groundRing?.classList.toggle("is-on", player || scan || farewell);
     els.scanFrame?.classList.toggle("is-on", scan);
-    if (els.playerHud) els.playerHud.hidden = !player;
-    if (els.scanHud) els.scanHud.hidden = !scan;
-    if (els.farewellHud) els.farewellHud.hidden = !farewell;
+    setHidden(els.scanFrame, !scan);
+
+    setHidden(els.playerHud, !player);
+    setHidden(els.scanHud, !scan);
+    setHidden(els.farewellHud, !farewell);
+    setHidden(els.cardStage, !acquire);
     els.cardStage?.classList.toggle("is-on", acquire);
-    if (!scan) els.scanLine?.classList.remove("is-running");
-    if (!acquire) acquireStep = 0;
+
+    if (els.btnRunScan) {
+      els.btnRunScan.disabled = phase === "scanning";
+    }
+
+    if (!scan) {
+      els.scanLine?.classList.remove("is-running");
+    }
+    if (!acquire) {
+      acquireStep = 0;
+    }
+
+    // Keep overlay interactive after placement
+    els.overlay?.classList.toggle("is-blocking", phase !== "floor" && phase !== "none");
   }
 
   function enterScanMode() {
+    if (state !== "player" && state !== "scan") return;
+    clearScanTimers();
     state = "scan";
     setArUi("scan");
     if (els.scanHint) els.scanHint.textContent = "選手をスキャンしよう！";
   }
 
   function cancelScanMode() {
+    if (state !== "scan" && state !== "scanning") return;
+    clearScanTimers();
+    els.glowFlash?.classList.remove("is-on");
     state = "player";
     setArUi("player");
   }
 
   function runScan() {
-    if (state === "scanning") return;
+    if (state !== "scan") return;
     state = "scanning";
     setArUi("scanning");
     if (els.scanHint) els.scanHint.textContent = "スキャン中";
+
     els.scanLine?.classList.remove("is-running");
-    // restart animation
     void els.scanLine?.offsetWidth;
     els.scanLine?.classList.add("is-running");
 
-    clearTimeout(scanTimer);
+    clearScanTimers();
     scanTimer = setTimeout(() => {
       els.glowFlash?.classList.remove("is-on");
       void els.glowFlash?.offsetWidth;
       els.glowFlash?.classList.add("is-on");
-      setTimeout(() => {
+
+      glowTimer = setTimeout(() => {
+        els.glowFlash?.classList.remove("is-on");
         enterAcquire();
       }, TIMING.glowMs);
     }, TIMING.scanMs);
   }
 
   function enterAcquire() {
+    clearScanTimers();
     state = "acquire";
     acquireStep = 0;
     setArUi("acquire");
@@ -274,12 +338,13 @@ export function initExperience(options = {}) {
 
   function enterFarewell() {
     state = "farewell";
-    els.cardStage?.classList.remove("is-on");
     setArUi("farewell");
   }
 
   async function finishAndReturn() {
+    if (state !== "farewell") return;
     closingAr = true;
+    clearScanTimers();
     els.fadeBlack?.classList.add("is-on");
     await wait(TIMING.fadeMs);
     try {
@@ -301,11 +366,19 @@ export function initExperience(options = {}) {
   }
 
   function exitArTo(screenName) {
-    clearTimeout(scanTimer);
+    clearScanTimers();
     els.fadeBlack?.classList.remove("is-on");
+    els.glowFlash?.classList.remove("is-on");
     els.arRoot.classList.remove("is-active");
     setArUi("none");
     showScreen(screenName);
+  }
+
+  function clearScanTimers() {
+    clearTimeout(scanTimer);
+    clearTimeout(glowTimer);
+    scanTimer = null;
+    glowTimer = null;
   }
 
   function wait(ms) {

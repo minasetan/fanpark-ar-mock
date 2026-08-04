@@ -245,11 +245,26 @@ button {
   z-index: 5;
 }
 
+/* After placement, capture UI taps so WebXR select does not steal them */
+.overlay.is-blocking {
+  pointer-events: auto;
+}
+
 .overlay .panel,
 .overlay .btn,
+.overlay .btn-ghost,
 .overlay .btn-icon,
-.overlay .tap-catcher {
+.overlay .hud-top,
+.overlay .hud-bottom,
+.overlay .tap-catcher,
+.overlay .card-stage.is-on {
   pointer-events: auto;
+}
+
+.overlay .btn:disabled,
+.overlay .btn-icon:disabled {
+  opacity: 0.55;
+  pointer-events: none;
 }
 
 .hud-top {
@@ -404,21 +419,28 @@ button {
 .card-stage {
   position: absolute;
   inset: 0;
-  display: flex;
+  z-index: 15;
+  display: none;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 18px;
   padding: 24px;
-  background: rgba(0, 0, 0, 0.55);
-  opacity: 0;
+  background: rgba(0, 0, 0, 0.72);
   pointer-events: none;
-  transition: opacity 0.25s ease;
+}
+
+.card-stage.is-on,
+.card-stage:not([hidden]) {
+  display: flex;
 }
 
 .card-stage.is-on {
-  opacity: 1;
   pointer-events: auto;
+}
+
+.card-stage[hidden] {
+  display: none !important;
 }
 
 .player-card {
@@ -467,12 +489,35 @@ button {
   opacity: 1;
 }
 
-.state-layer[hidden],
-.hud-top[hidden],
-.hud-bottom[hidden],
+#player-hud[hidden],
+#scan-hud[hidden],
+#farewell-hud[hidden],
+#card-stage[hidden],
 .footprint[hidden],
 .scan-frame[hidden] {
   display: none !important;
+}
+
+#player-hud,
+#scan-hud,
+#farewell-hud {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  pointer-events: none;
+}
+
+#player-hud .hud-bottom,
+#scan-hud .hud-top,
+#scan-hud .hud-bottom,
+#farewell-hud .hud-bottom {
+  pointer-events: auto;
+}
+
+#btn-cancel-scan {
+  min-width: 48px;
+  min-height: 48px;
+  z-index: 16;
 }
 
 @keyframes pulse {
