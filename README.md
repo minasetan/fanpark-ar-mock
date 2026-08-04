@@ -43,28 +43,43 @@ AR の最終確認は HTTPS の公開 URL で行ってください。
 
 プロジェクト ID が `.firebaserc` の `fanpark-ar-mock` と違う場合は、その ID に書き換えてください。
 
-### 2. 初回だけローカル準備
+### 2. Firebase CLI の入れ方（推奨: Homebrew）
+
+このマシンの nodenv には古い Node 8.3.0 しかなく、`npm install` が固まる／失敗します。  
+**Homebrew 経由で入れる方法を推奨**します（Node も一緒に入ります）。
+
+```bash
+brew install firebase-cli
+# 確認
+firebase --version
+node -v   # v20+ であること（Homebrew: /opt/homebrew/bin/node）
+```
+
+ターミナルで `node -v` が `v8.x` のままなら、PATH の先頭を Homebrew にしてください。
+
+```bash
+export PATH="/opt/homebrew/bin:$PATH"
+hash -r
+node -v
+```
+
+### 3. ログインとデプロイ
 
 ```bash
 cd /Users/y-kawada/Documents/workspace/sle/fanpark_mock
-npm install
-npx firebase login
-npx firebase use <あなたのプロジェクトID>
+export PATH="/opt/homebrew/bin:$PATH"
+firebase login
+firebase use fanpark-ar-mock
+firebase deploy --only hosting
 ```
 
-### 3. デプロイ
-
-```bash
-npm run deploy
-```
-
-成功すると `https://<project-id>.web.app` が表示されます。  
+成功すると `https://fanpark-ar-mock.web.app` が表示されます。  
 Hosting 以外の Firebase プロダクトは不要です（無料枠内で十分な想定）。
 
 プレビュー用チャネル（本番を汚さない確認）:
 
 ```bash
-npm run deploy:preview
+firebase hosting:channel:deploy preview --expires 7d
 ```
 
 ## ローカル確認
