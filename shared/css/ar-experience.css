@@ -470,13 +470,17 @@ button {
 }
 
 .player-card {
-  width: min(72vw, 260px);
-  aspect-ratio: 3 / 4.2;
+  width: min(70vw, 280px);
+  aspect-ratio: 9 / 16;
+  max-height: min(58dvh, 520px);
   border-radius: 18px;
   overflow: hidden;
   border: 3px solid #fff;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
-  background: #222 center / cover no-repeat;
+  background-color: #111;
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
   transform: scale(0.86);
   transition: transform 0.35s ease;
 }
