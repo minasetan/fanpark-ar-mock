@@ -55,7 +55,7 @@ button {
   text-align: center;
   padding-top: max(24px, env(safe-area-inset-top));
   background:
-    center top / cover no-repeat url("../../assets/title-background.jpg"),
+    center / cover no-repeat url("../../assets/title-background.jpg"),
     #6b0010;
 }
 
