@@ -421,7 +421,7 @@ button {
   justify-content: center;
   gap: 8px;
   padding: 24px;
-  background: rgba(0, 0, 0, 0.88);
+  background: #000;
   pointer-events: auto;
   text-align: center;
 }

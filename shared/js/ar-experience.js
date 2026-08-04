@@ -292,21 +292,17 @@ export function initExperience(options = {}) {
     els.arRoot?.classList.remove("ar-booting");
   }
 
-  /**
-   * Best-effort: pull the placed model to ~PLACEMENT_DISTANCE_M in front of the camera.
-   * Uses model-viewer's internal scene symbols (no public placement API).
-   */
-  function adjustPlacementDistance(meters) {
+  function getArInternals() {
     const mv = els.viewer;
-    if (!mv) return false;
+    if (!mv) return { scene: null, arRenderer: null };
+    let scene = null;
+    let arRenderer = null;
     try {
-      let scene = null;
-      let arRenderer = null;
       for (const sym of Object.getOwnPropertySymbols(mv)) {
         const val = mv[sym];
         if (!val || typeof val !== "object") continue;
         if (val.arRenderer) arRenderer = val.arRenderer;
-        if (val.scenes && val.arRenderer) arRenderer = val.arRenderer; // Renderer
+        if (val.scenes && val.arRenderer) arRenderer = val.arRenderer;
         if (val.scenePivot) scene = val;
         if (val.scene?.scenePivot) scene = val.scene;
         if (val.presentedScene?.scenePivot) scene = val.presentedScene;
@@ -323,6 +319,69 @@ export function initExperience(options = {}) {
           }
         }
       }
+    } catch (err) {
+      console.warn("getArInternals failed", err);
+    }
+    return { scene, arRenderer };
+  }
+
+  let hideModelRaf = 0;
+  let savedPivotScale = 1;
+
+  function setModelVisible(visible) {
+    const { scene, arRenderer } = getArInternals();
+    try {
+      if (scene?.scenePivot) {
+        scene.scenePivot.visible = visible;
+        if (!visible) {
+          if (scene.scenePivot.scale.x > 0.01) {
+            savedPivotScale = scene.scenePivot.scale.x;
+          }
+          scene.scenePivot.scale.setScalar(0.0001);
+        } else {
+          scene.scenePivot.scale.setScalar(savedPivotScale || 1);
+        }
+      }
+      if (typeof scene?.setShadowIntensity === "function") {
+        scene.setShadowIntensity(visible ? 1 : 0);
+      }
+      if (arRenderer?.placementBox) {
+        arRenderer.placementBox.show = false;
+        if ("visible" in arRenderer.placementBox) {
+          arRenderer.placementBox.visible = false;
+        }
+      }
+    } catch (err) {
+      console.warn("setModelVisible failed", err);
+    }
+  }
+
+  function startHidingModelUntilPlaced() {
+    stopHidingModelLoop();
+    const tick = () => {
+      if (state !== "floor" || closingAr) {
+        hideModelRaf = 0;
+        return;
+      }
+      setModelVisible(false);
+      hideModelRaf = requestAnimationFrame(tick);
+    };
+    hideModelRaf = requestAnimationFrame(tick);
+  }
+
+  function stopHidingModelLoop() {
+    if (hideModelRaf) {
+      cancelAnimationFrame(hideModelRaf);
+      hideModelRaf = 0;
+    }
+  }
+
+  /**
+   * Best-effort: pull the placed model to ~PLACEMENT_DISTANCE_M in front of the camera.
+   */
+  function adjustPlacementDistance(meters) {
+    try {
+      const { scene, arRenderer } = getArInternals();
       if (!scene?.scenePivot || typeof scene.getCamera !== "function") {
         return false;
       }
@@ -359,10 +418,12 @@ export function initExperience(options = {}) {
   }
 
   function enterPlayerUi() {
+    stopHidingModelLoop();
     revealArViewer();
+    setModelVisible(true);
     adjustPlacementDistance(PLACEMENT_DISTANCE_M);
-    // Retry once after a frame in case the scene was not ready
     requestAnimationFrame(() => {
+      setModelVisible(true);
       adjustPlacementDistance(PLACEMENT_DISTANCE_M);
     });
     setArUi("player");
@@ -373,12 +434,17 @@ export function initExperience(options = {}) {
     const status = event.target.getAttribute("ar-status") || event.detail?.status;
     if (closingAr) return;
     if (status === "failed") {
+      stopHidingModelLoop();
       exitArTo("unsupported");
       return;
     }
     if (status === "session-started") {
+      // Show DOM mask, but keep the 3D ghost fully hidden until placed.
       revealArViewer();
-      if (state === "floor") setArUi("floor");
+      if (state === "floor") {
+        setArUi("floor");
+        startHidingModelUntilPlaced();
+      }
       return;
     }
     if (status === "object-placed" && state === "floor") {
@@ -386,6 +452,7 @@ export function initExperience(options = {}) {
       return;
     }
     if (status === "not-presenting" && (state === "floor" || isArGameplayState())) {
+      stopHidingModelLoop();
       if (mode === "proposal") {
         exitArTo("map");
       } else {
@@ -519,6 +586,7 @@ export function initExperience(options = {}) {
   }
 
   function forceLeaveAr() {
+    stopHidingModelLoop();
     clearScanTimers();
     els.fadeBlack?.classList.remove("is-on");
     els.glowFlash?.classList.remove("is-on");
