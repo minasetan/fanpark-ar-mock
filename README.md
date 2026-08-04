@@ -2,12 +2,14 @@
 
 デバッグ用TOPから、複数種類のARモックを起動できる静的サイトです。
 
-- ソース管理 / 公開: GitHub + GitHub Pages
+- ソース管理: GitHub
+- 公開: GitHub Pages / Firebase Hosting（併用可）
 - パネル高さ: 2.00m（表裏の静止画像）
 
 ## 公開 URL
 
-- サイト: https://minasetan.github.io/fanpark-ar-mock/
+- GitHub Pages: https://minasetan.github.io/fanpark-ar-mock/
+- Firebase Hosting: デプロイ後に表示される `https://<project-id>.web.app`
 - リポジトリ: https://github.com/minasetan/fanpark-ar-mock
 
 ## モック一覧
@@ -27,6 +29,44 @@
 
 AR の最終確認は HTTPS の公開 URL で行ってください。
 
+## Firebase Hosting（試用）
+
+このリポジトリは Firebase Hosting 向け設定済みです（`firebase.json`）。
+
+### 1. コンソールでプロジェクト作成
+
+1. [Firebase Console](https://console.firebase.google.com/) を開く
+2. **Firebase プロジェクトを設定して開始** を押す
+3. プロジェクト名例: `fanpark-ar-mock`（ID が自動提案されます）
+4. Google Analytics はモック用途なら **無効でも可**
+5. 作成後、プロジェクト概要の歯車 → プロジェクトの設定 で **プロジェクト ID** を確認
+
+プロジェクト ID が `.firebaserc` の `fanpark-ar-mock` と違う場合は、その ID に書き換えてください。
+
+### 2. 初回だけローカル準備
+
+```bash
+cd /Users/y-kawada/Documents/workspace/sle/fanpark_mock
+npm install
+npx firebase login
+npx firebase use <あなたのプロジェクトID>
+```
+
+### 3. デプロイ
+
+```bash
+npm run deploy
+```
+
+成功すると `https://<project-id>.web.app` が表示されます。  
+Hosting 以外の Firebase プロダクトは不要です（無料枠内で十分な想定）。
+
+プレビュー用チャネル（本番を汚さない確認）:
+
+```bash
+npm run deploy:preview
+```
+
 ## ローカル確認
 
 ```bash
@@ -34,7 +74,7 @@ python3 -m http.server 8080
 # http://localhost:8080/
 ```
 
-WebXR はセキュアコンテキストが必要なため、AR起動の最終確認は GitHub Pages 上で行ってください。
+WebXR はセキュアコンテキストが必要なため、AR起動の最終確認は公開 HTTPS URL で行ってください。
 
 ## ファイル構成
 
@@ -42,6 +82,8 @@ WebXR はセキュアコンテキストが必要なため、AR起動の最終確
 .
 ├── index.html                 # デバッグTOP
 ├── style.css
+├── firebase.json              # Firebase Hosting 設定
+├── .firebaserc                # デフォルトプロジェクト ID
 ├── mocks/
 │   ├── proposal/              # (1) 提案モック
 │   ├── ar-android/            # (2) AR確認（Android / インタラクティブ）
@@ -54,7 +96,8 @@ WebXR はセキュアコンテキストが必要なため、AR起動の最終確
 └── assets/
     ├── character.glb
     ├── character.usdz
-    └── character-poster.webp
+    ├── character-poster.webp
+    └── map-background.jpg
 ```
 
 ## パネル差し替え

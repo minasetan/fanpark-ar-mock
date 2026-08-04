@@ -1,8 +1,7 @@
 node_modules/
-package-lock.json
-package.json
 tmp/
 .DS_Store
 *.log
+.firebase/
 assets/character_KEEP.usdz
 assets/character_PRESERVE.usdz

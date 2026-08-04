@@ -1,0 +1,14 @@
+{
+  "name": "fanpark-ar-mock",
+  "private": true,
+  "description": "RAKUTEN QUEST AR mock static site",
+  "scripts": {
+    "firebase:login": "firebase login",
+    "firebase:use": "firebase use --add",
+    "deploy": "firebase deploy --only hosting",
+    "deploy:preview": "firebase hosting:channel:deploy preview --expires 7d"
+  },
+  "devDependencies": {
+    "firebase-tools": "^14.0.0"
+  }
+}

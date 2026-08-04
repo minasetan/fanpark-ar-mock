@@ -1,0 +1,39 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      ".firebaserc",
+      "**/.*",
+      "**/node_modules/**",
+      "tmp/**",
+      ".git/**",
+      ".gitlab-ci.yml",
+      "package.json",
+      "package-lock.json",
+      "README.md",
+      "ATTRIBUTION.md",
+      "LICENSE"
+    ],
+    "headers": [
+      {
+        "source": "**/*.@(js|css)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public,max-age=3600"
+          }
+        ]
+      },
+      {
+        "source": "**/*.@(glb|usdz|jpg|jpeg|webp|png|svg)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public,max-age=86400"
+          }
+        ]
+      }
+    ]
+  }
+}
