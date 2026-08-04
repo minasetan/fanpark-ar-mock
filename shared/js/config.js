@@ -21,6 +21,7 @@ export const MAP_PLAYERS = [
 ];
 
 export const STORAGE_KEY = "rq_collected_players";
+export const RESUME_SCREEN_KEY = "rq_resume_screen";
 
 export const TIMING = {
   scanMs: 1600,

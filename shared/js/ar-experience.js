@@ -1,4 +1,10 @@
-import { PLAYER, MAP_PLAYERS, STORAGE_KEY, TIMING } from "./config.js";
+import {
+  PLAYER,
+  MAP_PLAYERS,
+  STORAGE_KEY,
+  RESUME_SCREEN_KEY,
+  TIMING,
+} from "./config.js";
 
 /**
  * Shared interactive AR experience for mocks (1) and (2).
@@ -60,7 +66,12 @@ export function initExperience(options = {}) {
   updateMapPins();
   setArUi("none");
 
-  if (mode === "ar-only") {
+  // WebXR終了後に透明オーバーレイが残ることがあるため、ARからの復帰はリロードで行う
+  const resumeScreen = sessionStorage.getItem(RESUME_SCREEN_KEY);
+  if (resumeScreen) {
+    sessionStorage.removeItem(RESUME_SCREEN_KEY);
+    showScreen(resumeScreen);
+  } else if (mode === "ar-only") {
     showScreen("notice");
   } else {
     showScreen("title");
@@ -421,25 +432,10 @@ export function initExperience(options = {}) {
     }
 
     els.fadeBlack?.classList.add("is-on");
-    await wait(TIMING.fadeMs);
+    await wait(Math.min(TIMING.fadeMs, 400));
 
-    forceLeaveAr();
-    activePlayerId = null;
-    if (mode === "proposal") {
-      showScreen("map");
-    } else {
-      showScreen("notice");
-    }
-
-    try {
-      if (els.viewer?.exitAR) {
-        await Promise.race([els.viewer.exitAR(), wait(1500)]);
-      }
-    } catch {
-      // ignore
-    }
-
-    closingAr = false;
+    // ARセッション残骸でMAPが触れなくなるのを避けるため、リロードで復帰する
+    hardReturnTo(mode === "proposal" ? "map" : "notice");
   }
 
   function forceLeaveAr() {
@@ -451,17 +447,35 @@ export function initExperience(options = {}) {
     if (els.arRoot) {
       els.arRoot.style.pointerEvents = "none";
       els.arRoot.style.visibility = "hidden";
+      els.arRoot.style.display = "none";
     }
     if (els.overlay) {
       els.overlay.classList.remove("is-blocking");
     }
+    document.body.style.overflow = "";
+    document.documentElement.style.overflow = "";
+  }
+
+  function hardReturnTo(screenName) {
+    try {
+      els.viewer?.exitAR?.();
+    } catch {
+      // ignore
+    }
+    forceLeaveAr();
+    sessionStorage.setItem(RESUME_SCREEN_KEY, screenName);
+    window.location.replace(window.location.pathname + window.location.search);
   }
 
   function exitArTo(screenName) {
+    if (closingAr) return;
     closingAr = true;
+    // 途中離脱でも WebXR 残骸で操作不能になりやすいのでリロード復帰する
+    if (screenName === "map" || screenName === "notice") {
+      hardReturnTo(screenName);
+      return;
+    }
     forceLeaveAr();
-    // 途中離脱では番号を消さない
-    if (screenName === "map") activePlayerId = null;
     showScreen(screenName);
     closingAr = false;
     try {
