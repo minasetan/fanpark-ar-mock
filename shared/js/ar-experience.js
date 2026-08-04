@@ -3,6 +3,7 @@ import {
   MAP_PLAYERS,
   STORAGE_KEY,
   RESUME_SCREEN_KEY,
+  PLACEMENT_DISTANCE_M,
   TIMING,
 } from "./config.js";
 
@@ -32,6 +33,7 @@ export function initExperience(options = {}) {
     mapCleared: document.getElementById("map-cleared"),
     mapHint: document.getElementById("map-hint"),
     footprint: document.getElementById("footprint"),
+    placementMask: document.getElementById("placement-mask"),
     groundRing: document.getElementById("ground-ring"),
     scanFrame: document.getElementById("scan-frame"),
     scanLine: document.getElementById("scan-line"),
@@ -123,18 +125,12 @@ export function initExperience(options = {}) {
   }
 
   function bindUi() {
+    // Block XR grab/move; floor placement is automatic (no user tap).
     const blockXrSelect = (event) => {
-      if (state === "floor") return;
       event.preventDefault();
     };
     els.overlay?.addEventListener("beforexrselect", blockXrSelect);
-    els.viewer?.addEventListener("beforexrselect", (event) => {
-      const path = event.composedPath?.() || [];
-      const inOverlay = path.includes(els.overlay);
-      if (inOverlay && state !== "floor") {
-        event.preventDefault();
-      }
-    });
+    els.viewer?.addEventListener("beforexrselect", blockXrSelect);
 
     document.getElementById("btn-start")?.addEventListener("click", (e) => {
       e.preventDefault();
@@ -296,6 +292,83 @@ export function initExperience(options = {}) {
     els.arRoot?.classList.remove("ar-booting");
   }
 
+  /**
+   * Best-effort: pull the placed model to ~PLACEMENT_DISTANCE_M in front of the camera.
+   * Uses model-viewer's internal scene symbols (no public placement API).
+   */
+  function adjustPlacementDistance(meters) {
+    const mv = els.viewer;
+    if (!mv) return false;
+    try {
+      let scene = null;
+      let arRenderer = null;
+      for (const sym of Object.getOwnPropertySymbols(mv)) {
+        const val = mv[sym];
+        if (!val || typeof val !== "object") continue;
+        if (val.arRenderer) arRenderer = val.arRenderer;
+        if (val.scenes && val.arRenderer) arRenderer = val.arRenderer; // Renderer
+        if (val.scenePivot) scene = val;
+        if (val.scene?.scenePivot) scene = val.scene;
+        if (val.presentedScene?.scenePivot) scene = val.presentedScene;
+      }
+      if (!scene && arRenderer?.presentedScene) {
+        scene = arRenderer.presentedScene;
+      }
+      if (!arRenderer) {
+        for (const sym of Object.getOwnPropertySymbols(mv)) {
+          const val = mv[sym];
+          if (val?.arRenderer?.presentedScene) {
+            arRenderer = val.arRenderer;
+            scene = scene || val.arRenderer.presentedScene;
+          }
+        }
+      }
+      if (!scene?.scenePivot || typeof scene.getCamera !== "function") {
+        return false;
+      }
+
+      const cam = scene.getCamera();
+      const pivot = scene.scenePivot;
+      const y = pivot.position.y;
+      let dx = pivot.position.x - cam.position.x;
+      let dz = pivot.position.z - cam.position.z;
+      let len = Math.hypot(dx, dz);
+      if (len < 0.05) {
+        const m = cam.matrixWorld?.elements;
+        if (m) {
+          dx = -m[8];
+          dz = -m[10];
+          len = Math.hypot(dx, dz) || 1;
+        } else {
+          return false;
+        }
+      }
+      dx /= len;
+      dz /= len;
+      const nx = cam.position.x + dx * meters;
+      const nz = cam.position.z + dz * meters;
+      pivot.position.set(nx, y, nz);
+      if (arRenderer?.goalPosition?.set) {
+        arRenderer.goalPosition.set(nx, y, nz);
+      }
+      return true;
+    } catch (err) {
+      console.warn("adjustPlacementDistance failed", err);
+      return false;
+    }
+  }
+
+  function enterPlayerUi() {
+    revealArViewer();
+    adjustPlacementDistance(PLACEMENT_DISTANCE_M);
+    // Retry once after a frame in case the scene was not ready
+    requestAnimationFrame(() => {
+      adjustPlacementDistance(PLACEMENT_DISTANCE_M);
+    });
+    setArUi("player");
+    state = "player";
+  }
+
   function onArStatus(event) {
     const status = event.target.getAttribute("ar-status") || event.detail?.status;
     if (closingAr) return;
@@ -309,9 +382,7 @@ export function initExperience(options = {}) {
       return;
     }
     if (status === "object-placed" && state === "floor") {
-      revealArViewer();
-      setArUi("player");
-      state = "player";
+      enterPlayerUi();
       return;
     }
     if (status === "not-presenting" && (state === "floor" || isArGameplayState())) {
@@ -340,7 +411,9 @@ export function initExperience(options = {}) {
     const acquire = phase === "acquire";
     const farewell = phase === "farewell";
 
-    setHidden(els.footprint, !floor);
+    // Footprint/tap guide is unused; auto-placement uses the opaque mask instead.
+    setHidden(els.footprint, true);
+    setHidden(els.placementMask, !floor);
     els.groundRing?.classList.toggle("is-on", player || scan || farewell);
     els.scanFrame?.classList.toggle("is-on", scan);
     setHidden(els.scanFrame, !scan);
@@ -362,7 +435,8 @@ export function initExperience(options = {}) {
       acquireStep = 0;
     }
 
-    els.overlay?.classList.toggle("is-blocking", phase !== "floor" && phase !== "none");
+    // Block XR grabs for the whole AR experience (placement is automatic).
+    els.overlay?.classList.toggle("is-blocking", phase !== "none");
   }
 
   function enterScanMode() {

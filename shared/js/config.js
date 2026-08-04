@@ -23,6 +23,9 @@ export const MAP_PLAYERS = [
 export const STORAGE_KEY = "rq_collected_players";
 export const RESUME_SCREEN_KEY = "rq_resume_screen";
 
+/** AR自動配置の目標距離（カメラ正面・水平方向・メートル） */
+export const PLACEMENT_DISTANCE_M = 1.0;
+
 export const TIMING = {
   scanMs: 1600,
   glowMs: 700,
