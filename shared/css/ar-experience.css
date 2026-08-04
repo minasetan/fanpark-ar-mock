@@ -127,17 +127,12 @@ button {
 .map-stage {
   position: relative;
   flex: 1;
-  min-height: 360px;
+  min-height: 420px;
   border-radius: 20px;
   overflow: hidden;
   background:
-    linear-gradient(180deg, rgba(40, 90, 50, 0.35), rgba(20, 30, 40, 0.9)),
-    repeating-linear-gradient(
-      90deg,
-      rgba(255, 255, 255, 0.04) 0 2px,
-      transparent 2px 40px
-    ),
-    #1d2a24;
+    linear-gradient(180deg, rgba(8, 12, 18, 0.18), rgba(8, 12, 18, 0.28)),
+    center / cover no-repeat url("../../assets/map-background.jpg");
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 

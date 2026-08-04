@@ -13,11 +13,11 @@ export const PLAYER = {
 
 /** MAP上の選手ピン（AR本体は共通） */
 export const MAP_PLAYERS = [
-  { id: "1", label: "1", x: 22, y: 28 },
-  { id: "2", label: "2", x: 72, y: 24 },
-  { id: "3", label: "3", x: 48, y: 48 },
-  { id: "4", label: "4", x: 28, y: 72 },
-  { id: "5", label: "5", x: 68, y: 70 },
+  { id: "1", label: "1", x: 20, y: 42 }, // 左サイドのコート付近
+  { id: "2", label: "2", x: 76, y: 22 }, // 右上の陸上トラック
+  { id: "3", label: "3", x: 48, y: 50 }, // 中央の野球場
+  { id: "4", label: "4", x: 30, y: 78 }, // 左下の駐車場
+  { id: "5", label: "5", x: 70, y: 74 }, // 右下エリア
 ];
 
 export const STORAGE_KEY = "rq_collected_players";

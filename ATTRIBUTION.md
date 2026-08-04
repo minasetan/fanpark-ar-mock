@@ -12,6 +12,12 @@
 
 写真素材の利用権限は、本モックの発注・運用側で確保している前提です。
 
+## MAP背景
+
+- ファイル: `assets/map-background.jpg`
+- 内容: 球場周辺を俯瞰したイラストMAP
+- 用途: 提案モックのMAP画面背景
+
 ## Web ライブラリ
 
 - [`@google/model-viewer`](https://modelviewer.dev/)（CDN 経由で読み込み）
