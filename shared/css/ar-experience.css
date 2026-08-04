@@ -49,6 +49,40 @@ button {
   gap: 16px;
 }
 
+.screen-title {
+  justify-content: flex-end;
+  align-items: center;
+  text-align: center;
+  padding-top: max(24px, env(safe-area-inset-top));
+  background:
+    center top / cover no-repeat url("../../assets/title-background.jpg"),
+    #6b0010;
+}
+
+.title-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  width: min(100%, 360px);
+  padding-bottom: 8px;
+}
+
+.btn-title-start {
+  width: 100%;
+  min-height: 52px;
+  border: 2px solid #e8c56a;
+  background: linear-gradient(180deg, #9a1020 0%, #6d0012 100%);
+  color: #ffe08a;
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.screen-title .link-top {
+  color: rgba(255, 220, 180, 0.75);
+}
+
 .screen-map {
   background:
     radial-gradient(800px 400px at 50% 0%, #3a1515 0%, transparent 60%),

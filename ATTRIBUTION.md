@@ -18,6 +18,12 @@
 - 内容: 球場周辺を俯瞰したイラストMAP
 - 用途: 提案モックのMAP画面背景
 
+## タイトル背景
+
+- ファイル: `assets/title-background.jpg`
+- 内容: RAKUTEN QUEST タイトル用キービジュアル
+- 用途: 提案モックのタイトル画面背景
+
 ## Web ライブラリ
 
 - [`@google/model-viewer`](https://modelviewer.dev/)（CDN 経由で読み込み）
