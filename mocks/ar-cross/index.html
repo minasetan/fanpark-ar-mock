@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  >
+  <title>AR確認（iPhone / Android） | RAKUTEN QUEST</title>
+  <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../../style.css">
+</head>
+<body>
+  <main>
+    <p class="back-link"><a href="../../index.html">← デバッグTOP</a></p>
+    <h1>AR確認のみ</h1>
+    <p class="badge">iPhone Safari / Android Chrome · 閲覧専用</p>
+
+    <p class="lead">
+      等身大パネル（2.00m）を平らな地面に配置して確認できます。
+      AR中のカスタムUIやスキャン演出はありません。
+    </p>
+
+    <model-viewer
+      src="../../assets/character.glb"
+      ios-src="../../assets/character.usdz"
+      poster="../../assets/character-poster.webp"
+      alt="ARで表示する等身大パネル"
+      camera-controls
+      auto-rotate
+      ar
+      ar-modes="scene-viewer quick-look"
+      ar-placement="floor"
+      ar-scale="fixed"
+      shadow-intensity="1"
+      touch-action="pan-y"
+      exposure="1"
+      camera-orbit="180deg 75deg 3.1m"
+      min-camera-orbit="auto auto 1.5m"
+      max-camera-orbit="auto auto 6m"
+    >
+      <button slot="ar-button" class="ar-button" type="button">
+        ARで表示
+      </button>
+    </model-viewer>
+
+    <section>
+      <h2>使い方</h2>
+      <ol>
+        <li>上のプレビューでパネルを回転して、表と裏を確認します。</li>
+        <li>「ARで表示」を押します。</li>
+        <li>スマートフォンをゆっくり動かして、平らな地面を認識させます。</li>
+        <li>地面をタップして等身大パネルを配置します。</li>
+        <li>周囲を歩いて観察できます。</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>注意事項</h2>
+      <ul>
+        <li>iPhone は Safari、Android は Chrome での利用を想定しています。</li>
+        <li>Scene Viewer / Quick Look 起動のため、AR中の独自UIは表示されません。</li>
+        <li>歩きながら画面を注視しないでください。</li>
+      </ul>
+    </section>
+  </main>
+
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+</body>
+</html>

@@ -6,65 +6,56 @@
     name="viewport"
     content="width=device-width, initial-scale=1, viewport-fit=cover"
   >
-  <title>等身大パネルAR</title>
+  <title>RAKUTEN QUEST | デバッグTOP</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./style.css">
-  <script
-    type="module"
-    src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js">
-  </script>
 </head>
 <body>
-  <main>
-    <h1>等身大パネルAR</h1>
-
+  <main class="top">
+    <p class="eyebrow">Debug Launcher</p>
+    <h1>RAKUTEN QUEST</h1>
     <p class="lead">
-      選手の等身大パネルを平らな地面に配置できます。
-      周囲の安全を確認してご利用ください。
+      検証用モックの起動ページです。確認したい体験を選んでください。
     </p>
 
-    <model-viewer
-      src="./assets/character.glb"
-      ios-src="./assets/character.usdz"
-      poster="./assets/character-poster.webp"
-      alt="ARで表示する等身大パネル"
-      camera-controls
-      auto-rotate
-      ar
-      ar-modes="scene-viewer quick-look"
-      ar-placement="floor"
-      ar-scale="fixed"
-      shadow-intensity="1"
-      touch-action="pan-y"
-      exposure="1"
-      camera-orbit="180deg 75deg 3.1m"
-      min-camera-orbit="auto auto 1.5m"
-      max-camera-orbit="auto auto 6m"
-    >
-      <button slot="ar-button" class="ar-button" type="button">
-        ARで表示
-      </button>
-    </model-viewer>
+    <nav class="mock-list" aria-label="モック一覧">
+      <a class="mock-card" href="./mocks/proposal/index.html">
+        <span class="mock-num">(1)</span>
+        <h2>提案モック資料どおり</h2>
+        <p>タイトル → MAP → AR → スキャン → 獲得 → お別れ → MAP</p>
+        <ul>
+          <li>対象: Android Chrome（WebXR）</li>
+          <li>AR中UI / エフェクト / タップ操作あり</li>
+        </ul>
+      </a>
+
+      <a class="mock-card" href="./mocks/ar-android/index.html">
+        <span class="mock-num">(2)</span>
+        <h2>AR確認のみ（Android）</h2>
+        <p>MAP省略。AR注意から選手表示・スキャン演出までを即確認</p>
+        <ul>
+          <li>対象: Android Chrome（WebXR）</li>
+          <li>AR中UI / エフェクト / タップ操作あり</li>
+        </ul>
+      </a>
+
+      <a class="mock-card" href="./mocks/ar-cross/index.html">
+        <span class="mock-num">(3)</span>
+        <h2>AR確認のみ（iPhone / Android）</h2>
+        <p>等身大パネルの配置・回り込み確認（閲覧専用）</p>
+        <ul>
+          <li>対象: iPhone Safari / Android Chrome</li>
+          <li>Quick Look / Scene Viewer（AR中カスタムUIなし）</li>
+        </ul>
+      </a>
+    </nav>
 
     <section>
-      <h2>使い方</h2>
-      <ol>
-        <li>上のプレビューでパネルを回転して、表と裏を確認します。</li>
-        <li>「ARで表示」を押します。</li>
-        <li>スマートフォンをゆっくり動かして、平らな地面を認識させます。</li>
-        <li>地面をタップして等身大パネルを配置します。</li>
-        <li>周囲を歩いて観察できます（OS標準機能で写真・動画も撮影できます）。</li>
-      </ol>
-    </section>
-
-    <section>
-      <h2>注意事項</h2>
+      <h2>共通メモ</h2>
       <ul>
-        <li>歩きながら画面を注視しないでください。</li>
-        <li>人や車の通行を妨げない場所で利用してください。</li>
-        <li>十分な明るさのある平らな場所が認識しやすいです。</li>
-        <li>iPhone は Safari、Android は Chrome での利用を想定しています。</li>
-        <li>端末や環境によっては AR が使えない場合があります。その場合は通常の3D表示をご利用ください。</li>
+        <li>AR最終確認は HTTPS（GitHub Pages）で行ってください。</li>
+        <li>(1)(2) は WebXR 対応の Android Chrome が必要です。iPhone では起動案内のみ出ます。</li>
+        <li>パネル高さ: 2.00m（体感約180cm想定）</li>
       </ul>
     </section>
   </main>

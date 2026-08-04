@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  >
+  <title>提案モック | RAKUTEN QUEST</title>
+  <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../../shared/css/ar-experience.css">
+</head>
+<body>
+  <section id="screen-title" class="screen screen-center">
+    <p class="brand">RAKUTEN QUEST</p>
+    <h1 class="title-hero">提案モック</h1>
+    <p class="sub">MAPからARへ遷移し、等身大の選手と出会ってカードを獲得する体験です。<br>Android Chrome（WebXR）向け</p>
+    <button id="btn-start" class="btn" type="button">スタート</button>
+    <a class="link-top" href="../../index.html">デバッグTOPへ</a>
+  </section>
+
+  <section id="screen-map" class="screen screen-map">
+    <div class="map-header">
+      <h1>MAP</h1>
+      <button id="btn-reset-collection" class="btn btn-ghost" type="button">獲得リセット</button>
+    </div>
+    <div class="map-stage">
+      <p class="map-label">簡易MAP · 位置情報なし</p>
+      <button id="player-pin" class="player-pin" type="button">
+        <span class="avatar" aria-hidden="true"></span>
+        <span class="pin-name">Rakuten Taro</span>
+      </button>
+    </div>
+    <p class="map-hint">選手ピンをタップするとARへ進みます。獲得済みの選手はMAPから消えます。</p>
+    <p style="margin-top:12px"><a class="link-top" href="../../index.html">デバッグTOPへ</a></p>
+  </section>
+
+  <section id="screen-notice" class="screen screen-center">
+    <p class="brand">AR注意事項</p>
+    <h1 class="title-hero" style="font-size:1.6rem">周囲の安全を確認</h1>
+    <p class="sub">
+      歩きながら画面を注視しないでください。<br>
+      十分な明るさのある平らな地面でご利用ください。<br>
+      人や車の通行を妨げない場所で体験してください。
+    </p>
+    <button id="btn-start-ar" class="btn" type="button">ARをはじめる</button>
+    <button id="btn-back-map" class="btn btn-ghost" type="button">MAPへ戻る</button>
+  </section>
+
+  <section id="screen-unsupported" class="screen screen-center">
+    <h1 class="title-hero" style="font-size:1.5rem">WebXR AR を利用できません</h1>
+    <p class="unsupported">
+      このモックは Android Chrome の WebXR（immersive-ar）向けです。
+      iPhone や非対応端末ではインタラクティブARを起動できません。
+      等身大パネルの閲覧確認はモック(3)をご利用ください。
+    </p>
+    <a class="btn" href="../../index.html">デバッグTOPへ</a>
+    <a class="btn btn-ghost" href="../ar-cross/index.html">モック(3)へ</a>
+  </section>
+
+  <div id="ar-root" class="ar-root">
+    <model-viewer
+      id="player-viewer"
+      src="../../assets/character.glb"
+      poster="../../assets/character-poster.webp"
+      alt="等身大の選手パネル"
+      ar
+      ar-modes="webxr"
+      ar-placement="floor"
+      ar-scale="fixed"
+      shadow-intensity="1"
+      exposure="1"
+      xr-environment
+      touch-action="none"
+      camera-controls
+      interaction-prompt="none"
+    >
+      <button id="ar-button" slot="ar-button" type="button">AR</button>
+
+      <!-- Default slot content becomes the WebXR DOM overlay -->
+      <div class="overlay" id="ar-overlay">
+        <div id="footprint" class="footprint" hidden></div>
+        <div id="ground-ring" class="ground-ring"></div>
+        <div id="scan-frame" class="scan-frame">
+          <div id="scan-line" class="scan-line"></div>
+        </div>
+        <div id="glow-flash" class="glow-flash"></div>
+
+        <div id="player-hud" hidden>
+          <div class="hud-bottom">
+            <div class="panel">
+              <p class="name" data-player-name>Rakuten Taro</p>
+              <p class="line" data-intro-line>はじめまして 楽天 太郎です
+応援よろしく！</p>
+            </div>
+            <button id="btn-scan" class="btn" type="button">スキャンする</button>
+          </div>
+        </div>
+
+        <div id="scan-hud" hidden>
+          <div class="hud-top">
+            <button id="btn-cancel-scan" class="btn btn-ghost" type="button">×</button>
+            <p id="scan-hint" class="hint-text">選手をスキャンしよう！</p>
+            <span style="width:48px"></span>
+          </div>
+          <div class="hud-bottom">
+            <button id="btn-run-scan" class="btn-icon" type="button" aria-label="スキャン">SCAN</button>
+          </div>
+        </div>
+
+        <div id="card-stage" class="card-stage">
+          <div id="player-card" class="player-card"></div>
+          <p id="card-msg" class="card-msg">楽天 太郎選手を入手した</p>
+          <p class="hint-text" style="position:relative;z-index:2">画面をタップ</p>
+          <button id="tap-catcher" class="tap-catcher" type="button" aria-label="次へ"></button>
+        </div>
+
+        <div id="farewell-hud" hidden>
+          <div class="hud-bottom">
+            <div class="panel">
+              <p class="name" data-player-name>Rakuten Taro</p>
+              <p class="line" data-farewell-line>また、会おう</p>
+            </div>
+            <button id="btn-farewell-ok" class="btn-icon" type="button" aria-label="OK">OK</button>
+          </div>
+        </div>
+
+        <div id="fade-black" class="fade-black"></div>
+      </div>
+    </model-viewer>
+  </div>
+
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <script type="module">
+    import { initExperience } from "../../shared/js/ar-experience.js";
+    initExperience({ mode: "proposal" });
+  </script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  >
+  <title>AR確認（Android） | RAKUTEN QUEST</title>
+  <link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="../../shared/css/ar-experience.css">
+</head>
+<body>
+  <section id="screen-title" class="screen"></section>
+  <section id="screen-map" class="screen"></section>
+
+  <section id="screen-notice" class="screen screen-center">
+    <p class="brand">RAKUTEN QUEST · (2)</p>
+    <h1 class="title-hero" style="font-size:1.7rem">AR確認のみ</h1>
+    <p class="sub">
+      MAPを省略し、ARのUI・スキャン演出・カード獲得までを確認できます。<br>
+      Android Chrome（WebXR）向け
+    </p>
+    <p class="unsupported" style="text-align:left">
+      ・周囲の安全を確認してください<br>
+      ・平らな地面をスキャンし、選手を配置します<br>
+      ・配置後にスキャン〜獲得演出を試せます
+    </p>
+    <button id="btn-start-ar" class="btn" type="button">ARをはじめる</button>
+    <a class="link-top" href="../../index.html">デバッグTOPへ</a>
+  </section>
+
+  <section id="screen-unsupported" class="screen screen-center">
+    <h1 class="title-hero" style="font-size:1.5rem">WebXR AR を利用できません</h1>
+    <p class="unsupported">
+      このモックは Android Chrome の WebXR（immersive-ar）向けです。
+      iPhone でのパネル確認はモック(3)をご利用ください。
+    </p>
+    <a class="btn" href="../../index.html">デバッグTOPへ</a>
+    <a class="btn btn-ghost" href="../ar-cross/index.html">モック(3)へ</a>
+  </section>
+
+  <div id="ar-root" class="ar-root">
+    <model-viewer
+      id="player-viewer"
+      src="../../assets/character.glb"
+      poster="../../assets/character-poster.webp"
+      alt="等身大の選手パネル"
+      ar
+      ar-modes="webxr"
+      ar-placement="floor"
+      ar-scale="fixed"
+      shadow-intensity="1"
+      exposure="1"
+      xr-environment
+      touch-action="none"
+      camera-controls
+      interaction-prompt="none"
+    >
+      <button id="ar-button" slot="ar-button" type="button">AR</button>
+
+      <div class="overlay" id="ar-overlay">
+        <div id="footprint" class="footprint" hidden></div>
+        <div id="ground-ring" class="ground-ring"></div>
+        <div id="scan-frame" class="scan-frame">
+          <div id="scan-line" class="scan-line"></div>
+        </div>
+        <div id="glow-flash" class="glow-flash"></div>
+
+        <div id="player-hud" hidden>
+          <div class="hud-bottom">
+            <div class="panel">
+              <p class="name" data-player-name>Rakuten Taro</p>
+              <p class="line" data-intro-line>はじめまして 楽天 太郎です
+応援よろしく！</p>
+            </div>
+            <button id="btn-scan" class="btn" type="button">スキャンする</button>
+          </div>
+        </div>
+
+        <div id="scan-hud" hidden>
+          <div class="hud-top">
+            <button id="btn-cancel-scan" class="btn btn-ghost" type="button">×</button>
+            <p id="scan-hint" class="hint-text">選手をスキャンしよう！</p>
+            <span style="width:48px"></span>
+          </div>
+          <div class="hud-bottom">
+            <button id="btn-run-scan" class="btn-icon" type="button" aria-label="スキャン">SCAN</button>
+          </div>
+        </div>
+
+        <div id="card-stage" class="card-stage">
+          <div id="player-card" class="player-card"></div>
+          <p id="card-msg" class="card-msg">楽天 太郎選手を入手した</p>
+          <p class="hint-text" style="position:relative;z-index:2">画面をタップ</p>
+          <button id="tap-catcher" class="tap-catcher" type="button" aria-label="次へ"></button>
+        </div>
+
+        <div id="farewell-hud" hidden>
+          <div class="hud-bottom">
+            <div class="panel">
+              <p class="name" data-player-name>Rakuten Taro</p>
+              <p class="line" data-farewell-line>また、会おう</p>
+            </div>
+            <button id="btn-farewell-ok" class="btn-icon" type="button" aria-label="OK">OK</button>
+          </div>
+        </div>
+
+        <div id="fade-black" class="fade-black"></div>
+      </div>
+    </model-viewer>
+  </div>
+
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <script type="module">
+    import { initExperience } from "../../shared/js/ar-experience.js";
+    initExperience({ mode: "ar-only" });
+  </script>
+</body>
+</html>
