@@ -361,7 +361,7 @@ button {
 }
 
 .footprint::after {
-  content: "選手の足跡があります\n地面を探してください";
+  content: "選手の足跡があります\A地面を探してください";
   position: absolute;
   left: 50%;
   top: calc(100% + 14px);
