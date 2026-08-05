@@ -11,6 +11,9 @@ export const PLAYER = {
   posterSrc: "../../assets/character-poster.webp",
 };
 
+/** 床検出〜自動配置中に出す汎用ゴースト（配置後に PLAYER.modelSrc へ差し替え） */
+export const PLACEMENT_GHOST_SRC = "../../assets/placement-ghost.glb";
+
 /** MAP上の選手ピン（AR本体は共通） */
 export const MAP_PLAYERS = [
   { id: "1", label: "1", x: 20, y: 42 }, // 左サイドのコート付近

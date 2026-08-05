@@ -1,5 +1,6 @@
 import {
   PLAYER,
+  PLACEMENT_GHOST_SRC,
   MAP_PLAYERS,
   STORAGE_KEY,
   RESUME_SCREEN_KEY,
@@ -93,7 +94,8 @@ export function initExperience(options = {}) {
       els.playerCard.style.backgroundImage = `url("${PLAYER.cardImage}")`;
     }
     if (els.viewer) {
-      els.viewer.src = PLAYER.modelSrc;
+      // AR起動時は汎用ゴースト。配置完了後に選手モデルへ差し替える
+      els.viewer.src = PLACEMENT_GHOST_SRC;
       els.viewer.poster = PLAYER.posterSrc;
     }
   }
@@ -325,26 +327,9 @@ export function initExperience(options = {}) {
     return { scene, arRenderer };
   }
 
-  let hideModelRaf = 0;
-  let savedPivotScale = 1;
-
-  function setModelVisible(visible) {
-    const { scene, arRenderer } = getArInternals();
+  function hidePlacementBox() {
     try {
-      if (scene?.scenePivot) {
-        scene.scenePivot.visible = visible;
-        if (!visible) {
-          if (scene.scenePivot.scale.x > 0.01) {
-            savedPivotScale = scene.scenePivot.scale.x;
-          }
-          scene.scenePivot.scale.setScalar(0.0001);
-        } else {
-          scene.scenePivot.scale.setScalar(savedPivotScale || 1);
-        }
-      }
-      if (typeof scene?.setShadowIntensity === "function") {
-        scene.setShadowIntensity(visible ? 1 : 0);
-      }
+      const { arRenderer } = getArInternals();
       if (arRenderer?.placementBox) {
         arRenderer.placementBox.show = false;
         if ("visible" in arRenderer.placementBox) {
@@ -352,27 +337,7 @@ export function initExperience(options = {}) {
         }
       }
     } catch (err) {
-      console.warn("setModelVisible failed", err);
-    }
-  }
-
-  function startHidingModelUntilPlaced() {
-    stopHidingModelLoop();
-    const tick = () => {
-      if (state !== "floor" || closingAr) {
-        hideModelRaf = 0;
-        return;
-      }
-      setModelVisible(false);
-      hideModelRaf = requestAnimationFrame(tick);
-    };
-    hideModelRaf = requestAnimationFrame(tick);
-  }
-
-  function stopHidingModelLoop() {
-    if (hideModelRaf) {
-      cancelAnimationFrame(hideModelRaf);
-      hideModelRaf = 0;
+      console.warn("hidePlacementBox failed", err);
     }
   }
 
@@ -417,42 +382,73 @@ export function initExperience(options = {}) {
     }
   }
 
+  function isPlayerModelLoaded() {
+    const src = els.viewer?.getAttribute("src") || els.viewer?.src || "";
+    return src.includes("character.glb") || src.endsWith(PLAYER.modelSrc);
+  }
+
   function enterPlayerUi() {
-    stopHidingModelLoop();
     revealArViewer();
-    setModelVisible(true);
+    hidePlacementBox();
     adjustPlacementDistance(PLACEMENT_DISTANCE_M);
     requestAnimationFrame(() => {
-      setModelVisible(true);
       adjustPlacementDistance(PLACEMENT_DISTANCE_M);
     });
     setArUi("player");
     state = "player";
   }
 
+  /**
+   * After floor placement, swap the generic ghost for the real player model.
+   */
+  function revealPlayerAfterPlacement() {
+    if (state !== "floor" || closingAr) return;
+    revealArViewer();
+    hidePlacementBox();
+    adjustPlacementDistance(PLACEMENT_DISTANCE_M);
+
+    if (!els.viewer || isPlayerModelLoaded()) {
+      enterPlayerUi();
+      return;
+    }
+
+    let settled = false;
+    const finish = () => {
+      if (settled || closingAr || state !== "floor") return;
+      settled = true;
+      els.viewer?.removeEventListener("load", onLoad);
+      adjustPlacementDistance(PLACEMENT_DISTANCE_M);
+      enterPlayerUi();
+    };
+    const onLoad = () => finish();
+
+    els.viewer.addEventListener("load", onLoad);
+    els.viewer.src = PLAYER.modelSrc;
+    // Cached load / missed event fallback
+    window.setTimeout(finish, 2500);
+  }
+
   function onArStatus(event) {
     const status = event.target.getAttribute("ar-status") || event.detail?.status;
     if (closingAr) return;
     if (status === "failed") {
-      stopHidingModelLoop();
       exitArTo("unsupported");
       return;
     }
     if (status === "session-started") {
-      // Show DOM mask, but keep the 3D ghost fully hidden until placed.
+      // Camera stays visible; translucent generic ghost helps find the floor.
       revealArViewer();
       if (state === "floor") {
         setArUi("floor");
-        startHidingModelUntilPlaced();
+        hidePlacementBox();
       }
       return;
     }
     if (status === "object-placed" && state === "floor") {
-      enterPlayerUi();
+      revealPlayerAfterPlacement();
       return;
     }
     if (status === "not-presenting" && (state === "floor" || isArGameplayState())) {
-      stopHidingModelLoop();
       if (mode === "proposal") {
         exitArTo("map");
       } else {
@@ -478,7 +474,7 @@ export function initExperience(options = {}) {
     const acquire = phase === "acquire";
     const farewell = phase === "farewell";
 
-    // Footprint/tap guide is unused; auto-placement uses the opaque mask instead.
+    // Footprint/tap guide is unused; auto-placement uses the translucent ghost + light hint.
     setHidden(els.footprint, true);
     setHidden(els.placementMask, !floor);
     els.groundRing?.classList.toggle("is-on", player || scan || farewell);
@@ -586,12 +582,15 @@ export function initExperience(options = {}) {
   }
 
   function forceLeaveAr() {
-    stopHidingModelLoop();
     clearScanTimers();
     els.fadeBlack?.classList.remove("is-on");
     els.glowFlash?.classList.remove("is-on");
     els.arRoot?.classList.remove("is-active", "ar-booting");
     setArUi("none");
+    // Next AR session should start from the generic ghost again
+    if (els.viewer) {
+      els.viewer.src = PLACEMENT_GHOST_SRC;
+    }
     if (els.arRoot) {
       els.arRoot.style.pointerEvents = "none";
       els.arRoot.style.visibility = "hidden";
