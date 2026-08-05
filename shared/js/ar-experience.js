@@ -1,6 +1,6 @@
 import {
   PLAYER,
-  PLACEMENT_GHOST_SRC,
+  AR_ORIENTATION_CONTRACT,
   MAP_PLAYERS,
   STORAGE_KEY,
   RESUME_SCREEN_KEY,
@@ -93,11 +93,17 @@ export function initExperience(options = {}) {
     if (els.playerCard) {
       els.playerCard.style.backgroundImage = `url("${PLAYER.cardImage}")`;
     }
-    if (els.viewer) {
-      // AR起動時は汎用ゴースト。配置完了後に選手モデルへ差し替える
-      els.viewer.src = PLACEMENT_GHOST_SRC;
-      els.viewer.poster = PLAYER.posterSrc;
-    }
+    applyArOrientationContract();
+  }
+
+  /**
+   * Apply the locked WebXR model + orientation. Never change src mid-session.
+   */
+  function applyArOrientationContract() {
+    if (!els.viewer) return;
+    els.viewer.src = AR_ORIENTATION_CONTRACT.modelSrc;
+    els.viewer.setAttribute("orientation", AR_ORIENTATION_CONTRACT.orientation);
+    els.viewer.poster = PLAYER.posterSrc;
   }
 
   function renderMapPins() {
@@ -382,11 +388,6 @@ export function initExperience(options = {}) {
     }
   }
 
-  function isPlayerModelLoaded() {
-    const src = els.viewer?.getAttribute("src") || els.viewer?.src || "";
-    return src.includes("character.glb") || src.endsWith(PLAYER.modelSrc);
-  }
-
   function enterPlayerUi() {
     revealArViewer();
     hidePlacementBox();
@@ -398,36 +399,6 @@ export function initExperience(options = {}) {
     state = "player";
   }
 
-  /**
-   * After floor placement, swap the generic ghost for the real player model.
-   */
-  function revealPlayerAfterPlacement() {
-    if (state !== "floor" || closingAr) return;
-    revealArViewer();
-    hidePlacementBox();
-    adjustPlacementDistance(PLACEMENT_DISTANCE_M);
-
-    if (!els.viewer || isPlayerModelLoaded()) {
-      enterPlayerUi();
-      return;
-    }
-
-    let settled = false;
-    const finish = () => {
-      if (settled || closingAr || state !== "floor") return;
-      settled = true;
-      els.viewer?.removeEventListener("load", onLoad);
-      adjustPlacementDistance(PLACEMENT_DISTANCE_M);
-      enterPlayerUi();
-    };
-    const onLoad = () => finish();
-
-    els.viewer.addEventListener("load", onLoad);
-    els.viewer.src = PLAYER.modelSrc;
-    // Cached load / missed event fallback
-    window.setTimeout(finish, 2500);
-  }
-
   function onArStatus(event) {
     const status = event.target.getAttribute("ar-status") || event.detail?.status;
     if (closingAr) return;
@@ -436,7 +407,7 @@ export function initExperience(options = {}) {
       return;
     }
     if (status === "session-started") {
-      // Camera stays visible; translucent generic ghost helps find the floor.
+      // Same locked model from session start; camera stays visible with a light hint.
       revealArViewer();
       if (state === "floor") {
         setArUi("floor");
@@ -445,7 +416,7 @@ export function initExperience(options = {}) {
       return;
     }
     if (status === "object-placed" && state === "floor") {
-      revealPlayerAfterPlacement();
+      enterPlayerUi();
       return;
     }
     if (status === "not-presenting" && (state === "floor" || isArGameplayState())) {
@@ -474,7 +445,7 @@ export function initExperience(options = {}) {
     const acquire = phase === "acquire";
     const farewell = phase === "farewell";
 
-    // Footprint/tap guide is unused; auto-placement uses the translucent ghost + light hint.
+    // Footprint/tap guide is unused; auto-placement uses the locked player model + light hint.
     setHidden(els.footprint, true);
     setHidden(els.placementMask, !floor);
     els.groundRing?.classList.toggle("is-on", player || scan || farewell);
@@ -587,10 +558,7 @@ export function initExperience(options = {}) {
     els.glowFlash?.classList.remove("is-on");
     els.arRoot?.classList.remove("is-active", "ar-booting");
     setArUi("none");
-    // Next AR session should start from the generic ghost again
-    if (els.viewer) {
-      els.viewer.src = PLACEMENT_GHOST_SRC;
-    }
+    applyArOrientationContract();
     if (els.arRoot) {
       els.arRoot.style.pointerEvents = "none";
       els.arRoot.style.visibility = "hidden";

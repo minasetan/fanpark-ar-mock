@@ -11,8 +11,24 @@ export const PLAYER = {
   posterSrc: "../../assets/character-poster.webp",
 };
 
-/** 床検出〜自動配置中に出す汎用ゴースト（配置後に PLAYER.modelSrc へ差し替え） */
-export const PLACEMENT_GHOST_SRC = "../../assets/placement-ghost.glb";
+/**
+ * WebXR 向け選手パネルの向き契約（唯一の正）。
+ *
+ * - model-viewer の orientation / src は必ずここ経由で適用する
+ * - character.glb は build_panel.py の compensate_webxr_upside_down 焼き込み前提
+ * - WebXR セッション中に src を差し替えない（配置姿勢と合成が崩れ、上下・裏表が反転する）
+ * - どちらかを変えたら Android Chrome 実機で「頭が上・表がカメラ向き」を確認すること
+ *
+ * @see README.md 「AR向き契約（WebXR）」
+ */
+export const AR_ORIENTATION_CONTRACT = {
+  /** model-viewer `orientation`（pitch yaw roll） */
+  orientation: "180deg 0 0",
+  /** セッション開始〜終了まで使い続ける GLB（差し替え禁止） */
+  modelSrc: PLAYER.modelSrc,
+  /** 対応メッシュを出したおおよそのコミット（向き焼き込み入り） */
+  meshBaseline: "a40027f",
+};
 
 /** MAP上の選手ピン（AR本体は共通） */
 export const MAP_PLAYERS = [

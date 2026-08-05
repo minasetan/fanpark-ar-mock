@@ -115,11 +115,30 @@ WebXR はセキュアコンテキストが必要なため、AR起動の最終確
     └── map-background.jpg
 ```
 
+## AR向き契約（WebXR）
+
+向きの正は **`shared/js/config.js` の `AR_ORIENTATION_CONTRACT` のみ**です。
+
+| 項目 | 固定値 |
+|------|--------|
+| GLB | `assets/character.glb`（`PLAYER.modelSrc`） |
+| `orientation` | `180deg 0 0` |
+| メッシュ前提 | `build_panel.py` の `compensate_webxr_upside_down` 焼き込み |
+
+**禁止 / 必須**
+
+- WebXR セッション中に `model-viewer` の `src` を差し替えない（配置姿勢との合成が崩れ、上下・裏表が反転する）
+- HTML に個別の `orientation` を書かず、起動時に `applyArOrientationContract()` で適用する
+- `character.glb` か orientation のどちらかを変えたら、Android Chrome 実機で「頭が上・表がカメラ向き」を確認する
+
+モック(3) の Scene Viewer / Quick Look はネイティブ側の向き変換があり、この契約の対象外です。
+
 ## パネル差し替え
 
 1. 表裏の透過 PNG を用意する
-2. `tmp/panel/build_panel.py` で GLB / USDZ を再生成する
-3. `assets/character-poster.webp` と `ATTRIBUTION.md` を更新する
+2. `tmp/panel/build_panel.py` で GLB / USDZ を再生成する（WebXR 用の向き焼き込みを維持）
+3. `AR_ORIENTATION_CONTRACT` を変えずに実機確認する。向きを変える場合は契約とセットで更新する
+4. `assets/character-poster.webp` と `ATTRIBUTION.md` を更新する
 
 詳細は [ATTRIBUTION.md](./ATTRIBUTION.md) を参照してください。
 
